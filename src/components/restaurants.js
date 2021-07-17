@@ -8,7 +8,7 @@ const Restaurants = (props) => {
     name: "",
     address: "",
     cuisine: "",
-    reviews: [],
+    reviews: []
   };
 
   const [restaurant, setRestaurant] = useState(initialRestaurantState);
@@ -32,7 +32,7 @@ const Restaurants = (props) => {
         setRestaurant((prevState) => {
           prevState.reviews.splice(index, 1);
           return {
-            ...prevState,
+            ...prevState
           };
         });
       })
@@ -99,8 +99,8 @@ const Restaurants = (props) => {
                                   props.match.params.id +
                                   "/review",
                                 state: {
-                                  currentReview: review,
-                                },
+                                  currentReview: review
+                                }
                               }}
                               className="btn btn-primary col-lg-5 mx-1 mb-1"
                             >

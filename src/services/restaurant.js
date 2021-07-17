@@ -1,17 +1,21 @@
 import http from "../http-common";
 
 class RestaurantDataService {
-  getAll(page = 0) {
-    return http.get(`?page=${page}`);
+  getAll(filters, page = 0, restaurantsPerPage = 20) {
+    let queryFilters;
+
+    queryFilters = Object.entries(filters)
+      .map((item) => item.join("="))
+      .join("&");
+    queryFilters += "&";
+
+    return http.get(
+      `?${queryFilters}restaurantsPerPage=${restaurantsPerPage}&page=${page}`
+    );
   }
 
   get(id) {
     return http.get(`/id/${id}`);
-  }
-
-  /* Search restaurant by name, cuisine or page */
-  find(query, by = "name", page = 0) {
-    return http.get(`?${by}=${query}&page=${page}`);
   }
 
   createReview(data) {
@@ -26,7 +30,7 @@ class RestaurantDataService {
     return http.delete(`/review/?id=${id}`, { data: { user_id: userId } });
   }
 
-  getCuisine(id) {
+  getCuisines() {
     return http.get(`/cuisines`);
   }
 }

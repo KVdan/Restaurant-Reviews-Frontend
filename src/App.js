@@ -27,7 +27,7 @@ function App() {
     <div>
       <nav className="navbar navbar-expand navbar-dark bg-dark">
         {/* navbar brand */}
-        <a className="navbar-brand" href="/restaurants">
+        <a className="navbar-brand m-4" href="/restaurants">
           Restaurant Reviews
         </a>
 

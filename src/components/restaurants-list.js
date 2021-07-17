@@ -1,35 +1,48 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import RestaurantDataService from "../services/restaurant";
 import { Link } from "react-router-dom";
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import SearchIcon from "@material-ui/icons/Search";
+import { styled } from "@material-ui/core/styles";
+import Paper from "@material-ui/core/Paper";
+import Grid from "@material-ui/core/Grid";
+import Container from "@material-ui/core/Container";
 
 const RestaurantsList = (props) => {
+  /* data source */
   const [restaurants, setRestaurants] = useState([]);
   const [cuisines, setCuisines] = useState(["All Cuisines"]);
   /* search query variables */
   const [searchName, setSearchName] = useState("");
-  const [searchZip, setSearchZip] = useState("");
-  const [searchCuisine, setSearchCuisines] = useState("");
+  const [searchCuisine, setSearchCuisine] = useState("");
+  const [filters, setFilters] = useState({ name: "", cuisine: "" });
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalResults, setTotalResults] = useState(0);
+  const [restaurantsPerPage, setRestaurantsPerPage] = useState(4);
+  const [pagesCount, setPagesCount] = useState(0);
 
   /* do something after rendering */
   useEffect(() => {
-    retrieveRestaurants();
     retrieveCuisines();
+    retrieveRestaurants();
   }, []);
 
+  const pageArr = Array.from(Array(pagesCount).keys());
   /* search box value change handler */
   const onChangeSearchName = (e) => {
     const searchName = e.target.value;
     setSearchName(searchName);
+    setFilters({ name: searchName, cuisine: searchCuisine });
   };
 
-  const onChangeSearchZip = (e) => {
-    const searchZip = e.target.value;
-    setSearchZip(searchZip);
-  };
-
-  const onChangeSearchCuisine = (e) => {
-    const searchCuisine = e.target.value;
-    setSearchCuisines(searchCuisine);
+  const onChangeSearchCuisine = (e, value) => {
+    const searchCuisine = value;
+    setSearchCuisine(searchCuisine);
+    setFilters({ name: searchName, cuisine: searchCuisine });
   };
 
   const refreshList = () => {
@@ -37,150 +50,207 @@ const RestaurantsList = (props) => {
   };
 
   const retrieveRestaurants = () => {
-    RestaurantDataService.getAll()
+    RestaurantDataService.getAll(filters, currentPage, restaurantsPerPage)
       .then((res) => {
         setRestaurants(res.data.restaurants);
+        setTotalResults(res.data.total_results);
+        setPagesCount(Math.ceil(res.data.total_results / restaurantsPerPage));
       })
       .catch((e) => {
         console.log(e);
       });
   };
 
-  const retrieveCuisines = () => {
-    RestaurantDataService.getCuisine()
+  const retrieveCuisines = useCallback(() => {
+    RestaurantDataService.getCuisines()
       .then((res) => {
         setCuisines(["All Cuisines"].concat(res.data));
       })
       .catch((e) => {
         console.log(e);
       });
-  };
+  }, []);
 
-  const findByName = () => {
-    find(searchName, "name");
-  };
-
-  const findByZip = () => {
-    find(searchZip, "zipcode");
-  };
-
-  const findByCuisine = () => {
-    if (searchCuisine === "All Cuisines") {
+  const handleCuisineSearchKeydown = (event) => {
+    if (event.key === "Enter") {
       refreshList();
-    } else {
-      find(searchCuisine, "cuisine");
     }
   };
 
-  const find = (query, by) => {
-    RestaurantDataService.find(query, by)
-      .then((res) => {
-        setRestaurants(res.data.restaurants);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+  const jumpToPage = (event) => {
+    setCurrentPage(parseInt(event.target.innerHTML, 10));
+    refreshList();
   };
+
+  const jumpToPage0 = (event) => {
+    setCurrentPage(0);
+    refreshList();
+  };
+
+  const jumpToNextPage = (event) => {
+    setCurrentPage(currentPage + 1);
+    refreshList();
+  };
+
+  const Item = styled(Paper)(({ theme }) => ({
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: "center",
+    color: theme.palette.text.secondary
+  }));
 
   return (
     <div>
-      <div className="row pb-1 align-items-center">
-        <div className="input-group col-md-4">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by name"
-            value={searchName}
-            onChange={onChangeSearchName}
-          />
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByName}
-            >
-              Search
-            </button>
-          </div>
-        </div>
+      <div>
+        <Container maxWidth="md">
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={4}>
+              <Autocomplete
+                id="combo-box-demo"
+                value={searchCuisine}
+                onChange={onChangeSearchCuisine}
+                onKeyPress={handleCuisineSearchKeydown}
+                options={cuisines.map((cuisine) => cuisine.substr(0, 20))}
+                getOptionLabel={(option) => option}
+                style={{ width: 210 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Search by Cuisine + Enter" />
+                )}
+              />
+            </Grid>
 
-        <div className="input-group col-md-4">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by zipcode"
-            value={searchZip}
-            onChange={onChangeSearchZip}
-          />
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByZip}
-            >
-              Search
-            </button>
-          </div>
-        </div>
-
-        <div className="input-group col-md-4">
-          <select onChange={onChangeSearchCuisine}>
-            {cuisines.map((cuisine, index) => {
-              return (
-                <option value={cuisine} key={index}>
-                  {cuisine.substr(0, 20)}
-                </option>
-              );
-            })}
-          </select>
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByCuisine}
-            >
-              Search
-            </button>
-          </div>
-        </div>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="Search by Name"
+                value={searchName}
+                style={{ width: 170 }}
+                onChange={onChangeSearchName}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment>
+                      <IconButton onClick={refreshList}>
+                        <SearchIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Container>
       </div>
 
-      <div className="card-columns">
-        {restaurants.map((restaurant, index) => {
-          const address = `${restaurant.address.building} ${restaurant.address.street}, ${restaurant.address.zipcode}`;
-          return (
-            <div key={index}>
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="cardtitle">{restaurant.name}</h5>
-                  <p className="card-text">
-                    <strong>Cuisine: </strong>
-                    {restaurant.cuisine}
-                    <br />
-                    {address}
-                  </p>
-                  <div className="row">
-                    <Link
-                      to={"/restaurants/" + restaurant._id}
-                      className="btn btn-primary col-lg-5 mx-1 mb-1"
-                    >
-                      View Reviews
-                    </Link>
+      <div>
+        <div className="d-flex flex-row-reverse bd-highlight">
+          <span className="p-2 bd-highlight">
+            Total Results: {totalResults}
+          </span>
+          <span className="p-2 bd-highlight">Page: {currentPage} </span>
+          <span className="p-2 bd-highlight">
+            Restaurants/Page: {restaurantsPerPage}
+          </span>
+        </div>
+        <Container maxWidth="md">
+          <p>Jump to page</p>
+          <div
+            className="d-flex flex-row bd-highlight mb-3"
+            style={{ height: 40 }}
+          >
+            <button class="h-100 d-inline-block" onClick={jumpToPage0}>
+              Zero
+            </button>
 
-                    <a
-                      target="_blank"
-                      rel="noreferrer"
-                      href={"https://www.google.com/maps/place/" + address}
-                      className="btn btn-primary col-lg-5 mx-1 mb-1"
+            {restaurants ? (
+              currentPage < 3 ? (
+                pageArr.slice(1, 5).map((item, index) => (
+                  <button
+                    key={index}
+                    class="h-100 d-inline-block"
+                    onClick={jumpToPage}
+                  >
+                    {pageArr.indexOf(item)}
+                  </button>
+                ))
+              ) : (
+                pageArr
+                  .slice(currentPage - 2, currentPage + 3)
+                  .map((item, index) => (
+                    <button
+                      key={index}
+                      class="h-100 d-inline-block"
+                      onClick={jumpToPage}
                     >
-                      View Map
-                    </a>
-                  </div>
-                </div>
+                      {pageArr.indexOf(item)}
+                    </button>
+                  ))
+              )
+            ) : (
+              <span></span>
+            )}
+            {currentPage + 3 < [...pageArr].pop() ? (
+              <div>
+                <button class="h-100 d-inline-block" disabled>
+                  ...
+                </button>
+                <button class="h-100 d-inline-block" onClick={jumpToPage}>
+                  {pageArr.indexOf([...pageArr].pop())}
+                </button>
               </div>
-            </div>
-          );
-        })}
+            ) : (
+              <span></span>
+            )}
+
+            <button onClick={jumpToNextPage}>Next</button>
+          </div>
+        </Container>
+      </div>
+
+      <div>
+        <Container maxWidth="sm">
+          <Grid container spacing={4}>
+            {restaurants.map((restaurant, index) => {
+              const address = `${restaurant.address.building} ${restaurant.address.street}, ${restaurant.address.zipcode}`;
+              return (
+                <Grid item key={index} xs={12} sm={6}>
+                  <Item>
+                    <h5 className="cardtitle">{restaurant.name}</h5>
+                    <p className="card-text">
+                      <strong>Cuisine: </strong>
+                      {restaurant.cuisine}
+                      <br />
+                      {address}
+                    </p>
+                    <div className="container">
+                      <div className="row">
+                        <div className="col-sm">
+                          <Link to={"/restaurants/" + restaurant._id}>
+                            <Button>View Reviews</Button>
+                          </Link>
+                        </div>
+                        <div className="col-sm">
+                          <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href={
+                              "https://www.google.com/maps/place/" + address
+                            }
+                          >
+                            <Button>View Map</Button>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </Item>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Container>
+        <Container maxWidth="sm">
+          <Grid container spacing={4}>
+            {}
+          </Grid>
+        </Container>
       </div>
     </div>
   );
