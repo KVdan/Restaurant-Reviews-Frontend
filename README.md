@@ -6,6 +6,7 @@ Simple and beautiful restaurant reviews app - created using MERN stack (MongoDB 
 ## Features
 - Mobile ready single-page application
 - Beautiful looking built with Material-UI components
+- Pagination with cards per page setting 
 - Search restaurants with multiple filters using MongoDB pipeline aggregation
 - Read, post, edit and delete restaurant reviews (only users who created the posts can edit and delete posts)
 - Sign up, sign in and google login with JWT verification
