@@ -7,6 +7,7 @@ import AddReview from "./components/add-review.js";
 import Restaurants from "./components/restaurants.js";
 import RestaurantsList from "./components/restaurants-list.js";
 import Login from "./components/login";
+import logo from "./assets/logo.png";
 
 import RestaurantDataService from "./services/restaurant.js";
 
@@ -33,7 +34,7 @@ function App() {
     const user = {
       name: `${googleResponse.firstName} ${googleResponse.lastName}`,
       _id: googleResponse.googleId,
-      email: googleResponse.email
+      email: googleResponse.email,
     };
     setUser(user);
     console.log("user");
@@ -60,11 +61,16 @@ function App() {
 
   return (
     <div>
-      <nav className="navbar navbar-expand navbar-dark bg-dark">
+      <nav
+        className="navbar navbar-expand"
+        style={{ position: "sticky", top: 0 }}
+      >
         {/* navbar brand */}
-        <a className="navbar-brand m-4" href="/restaurants">
-          Restaurant Reviews
-        </a>
+        <div>
+          <a className="navbar-brand m-4" href="/restaurants">
+            <img src={logo} alt="restaurant reviews" style={{ maxWidth: 50 }} />
+          </a>
+        </div>
 
         {/* navbar nav */}
         <div className="navbar-nav mr-auto">
