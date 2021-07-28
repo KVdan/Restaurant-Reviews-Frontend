@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import RestaurantDataService from "../services/restaurant";
 import { Link } from "react-router-dom";
+import Button from "@material-ui/core/Button";
 
 const AddReview = (props) => {
   let initialReviewState = "";
@@ -23,7 +24,6 @@ const AddReview = (props) => {
     let data = {
       text: review,
       name: props.user.name,
-      user_id: props.user.id,
       restaurant_id: props.match.params.id /* fetching id from the url */
     };
 
@@ -56,11 +56,8 @@ const AddReview = (props) => {
           {submitted ? (
             <div>
               <h4>Submitted successfully!</h4>
-              <Link
-                to={"/restaurants/" + props.match.params.id}
-                className="btn btn-success"
-              >
-                Back to Restaurant
+              <Link to={"/restaurants/" + props.match.params.id}>
+                <Button color="primary">Back to Restaurant</Button>
               </Link>
             </div>
           ) : (
@@ -79,9 +76,7 @@ const AddReview = (props) => {
                   className="form-control"
                 />
               </div>
-              <button onClick={saveReview} className="btn btn-success">
-                Submit
-              </button>
+              <Button onClick={saveReview}>Submit</Button>
             </div>
           )}
         </div>

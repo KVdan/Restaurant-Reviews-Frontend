@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import RestaurantDataService from "../services/restaurant";
 import { Link } from "react-router-dom";
+import Button from "@material-ui/core/Button";
 
 const Restaurants = (props) => {
   const initialRestaurantState = {
@@ -18,7 +19,7 @@ const Restaurants = (props) => {
     getRestaurant(props.match.params.id);
   });
 
-  const getRestaurant = (id) => {
+  const getRestaurant = async (id) => {
     RestaurantDataService.get(id).then((res) => {
       setRestaurant(res.data);
     });
@@ -26,7 +27,7 @@ const Restaurants = (props) => {
 
   /* remove the indexed review from the review array */
   const deleteReview = (reviewId, index) => {
-    RestaurantDataService.deleteReview(reviewId, props.user.id)
+    RestaurantDataService.deleteReview(reviewId, props.user._id)
       .then((res) => {
         console.log("Deletion succeed!");
         setRestaurant((prevState) => {
@@ -56,11 +57,8 @@ const Restaurants = (props) => {
             {restaurant.address.zipcode}
           </p>
 
-          <Link
-            to={"/restaurants/" + props.match.params.id + "/review"}
-            className="btn btn-primary"
-          >
-            Add Review
+          <Link to={"/restaurants/" + props.match.params.id + "/review"}>
+            <Button color="primary">Add Review</Button>
           </Link>
           <h4>Reviews</h4>
           <div className="row">
@@ -83,14 +81,14 @@ const Restaurants = (props) => {
                         {/* The second && is a fancy way to tell that 
                                  if  props.user && props.user.id === review.user_id both are true, 
                                  then we will put the code chunk after the second && here. */}
-                        {props.user && props.user.id === review.user_id && (
-                          <div className="row">
-                            <button
+                        {props.user && props.user._id === review.user_id && (
+                          <div className="d-flex justify-content-around">
+                            <Button
+                              color="secondary"
                               onClick={() => deleteReview(review._id, index)}
-                              className="btn btn-primary col-lg-5 mx-1 mb-1"
                             >
                               Delete
-                            </button>
+                            </Button>
 
                             <Link
                               to={{
@@ -102,9 +100,8 @@ const Restaurants = (props) => {
                                   currentReview: review
                                 }
                               }}
-                              className="btn btn-primary col-lg-5 mx-1 mb-1"
                             >
-                              Edit
+                              <Button color="primary">Edit</Button>
                             </Link>
                           </div>
                         )}
